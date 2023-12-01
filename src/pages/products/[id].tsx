@@ -1,7 +1,4 @@
-import { useRouter } from "next/router";
-import useSWR from "swr";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { GetServerSidePropsContext, GetStaticPropsContext } from "next";
 
 type Product = {
   id: number;
@@ -16,14 +13,7 @@ type Product = {
   };
 };
 
-export default function Home() {
-  const router = useRouter();
-  const { id } = router.query;
-  const { data: product, isLoading, error } = useSWR(`https://fakestoreapi.com/products/${id}`, fetcher);
-
-  if (isLoading) return <>Loading...</>;
-  if (error) return <>Error...</>;
-
+export default function Home({ product }) {
   return (
     <div>
       <nav className="bg-gray-800 p-4">
@@ -69,4 +59,13 @@ export default function Home() {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { id } = context.params;
+  const response = await fetch("https://fakestoreapi.com/products/" + id);
+  const product = await response.json();
+  return {
+    props: { product },
+  };
 }
